@@ -152,11 +152,17 @@ class CreateNewClub:
         self.Frame_4.place(relx=0.5, rely=0.1, anchor="n")
         ttk.Label(self.Frame_4, text="Canchas por superficie", font=("Calibri", 13), justify="center").grid()
 
-        self.n = 0
-        self.ventana3_render(self.listaDeporteSel[self.n])
+        self.ventana3_render(self.listaDeporteSel, 0)
 
 
-    def ventana3_render(self, deporte):
+    def ventana3_render(self, listaDeporte, num):
+
+        try:
+            self.Frame_sup.destroy()
+        except:
+            pass
+
+        deporte = listaDeporte[num]
 
         self.Frame_sup = ttk.LabelFrame(self.VentFondo, text="")
         self.Frame_sup.grid(row=1, column=0)
@@ -176,7 +182,7 @@ class CreateNewClub:
         superficieLabel2.grid(column=0, row=1)
         supNum2 = IntVar()
         sbIzq = tk.Spinbox(self.Frame_sup, width=6, font=("calibri",12), justify="center", from_=0, to=20, state="disabled", textvariable=supNum2)
-        sbIzq.grid(column=0, row=2)
+        sbIzq.grid(column=0, row=2, padx=10)
         tk.Label(self.Frame_sup, text="                    ", font=("calibri",12)).grid(column=0, row=3)
 
         try:
@@ -189,7 +195,7 @@ class CreateNewClub:
         superficieLabel3.grid(column=2, row=1)
         supNum3 = IntVar()
         sbDer = tk.Spinbox(self.Frame_sup, width=6, font=("calibri",12), justify="center", from_=0, to=20, state="disabled", textvariable=supNum3)
-        sbDer.grid(column=2, row=2)
+        sbDer.grid(column=2, row=2, padx=10)
         tk.Label(self.Frame_sup, text="                    ", font=("calibri",12)).grid(column=2, row=3)
 
         try:
@@ -198,11 +204,15 @@ class CreateNewClub:
         except IndexError:
             pass
         
-        botonSiguiente = ttk.Button(self.Frame_sup, text="\n Siguiente \n", command= lambda:self.siguiente2(supNum.get(), supNum2.get(), supNum3.get()))
+        botonSiguiente = ttk.Button(self.Frame_sup, text="\n Siguiente \n", command= lambda:self.siguiente2(supNum.get(), supNum2.get(), supNum3.get(), num))
         botonSiguiente.grid(column=2, row=4)
+        if (num + 1) == len(listaDeporte):
+            botonSiguiente.config(text="\n Finalizar \n")
 
-        botonAnterior = ttk.Button(self.Frame_sup, text="\n Anterior \n", command= lambda:self.anterior(supNum.get(), supNum2.get(), supNum3.get()))
+        botonAnterior = ttk.Button(self.Frame_sup, text="\n Anterior \n", command= lambda:self.anterior(num))
         botonAnterior.grid(column=0, row=4)
+        if num == 0:
+            botonAnterior.config(state="disabled")
 
     # ----------------------------- FUNCION BOTONES -----------------------------
 
@@ -274,35 +284,41 @@ class CreateNewClub:
             self.info_2.config(text="Ya existe un club con ese nombre", foreground="red")
 
 
-    def siguiente2(self, s1, s2, s3):
+    def siguiente2(self, s1, s2, s3, num):
 
         self.t = (s1, s2, s3)
         self.surfaceTuplas.append(self.t)
 
-        for i in range(len(self.superficieDicc[self.listaDeporteSel[self.n]])):
-            self.superficieDicc[self.listaDeporteSel[self.n]][i].append(self.t[i])
+        for i in range(len(self.superficieDicc[self.listaDeporteSel[num]])):
+            self.superficieDicc[self.listaDeporteSel[num]][i].append(self.t[i])
 
-        self.n += 1
+        num += 1
 
-        try:
-            self.Frame_sup.destroy()
-            self.ventana3_render(self.listaDeporteSel[self.n])
-        except IndexError:
-            self.tuplaDatos.append(str(self.surfaceTuplas))
-            Creador_BD.guardar_en_registro(self.tuplaDatos, True)
-            Creador_BD.guardar_en_club(self.tuplaDatos[0], self.listaDeporteSel, self.superficieDicc, self.tuplaDatos)
-            preg = mb.askyesno("Datos guardados", "Desea añadir un nuevo club?")
-            if preg:
-                self.Frame_4.destroy()
-                self.ventana2()
-            else:
-                self.VentFondo.destroy()
+        if self.t == (0,0,0):
+            mb.showerror("Error", "Debe asignar al menos 1 cancha a este deporte")
+        
+            try:
+                self.Frame_sup.destroy()
+                self.ventana3_render(self.listaDeporteSel, num)
+            except IndexError:
+                self.tuplaDatos.append(str(self.surfaceTuplas))
+                Creador_BD.guardar_en_registro(self.tuplaDatos, True)
+                Creador_BD.guardar_en_club(self.tuplaDatos[0], self.listaDeporteSel, self.superficieDicc, self.tuplaDatos)
+                preg = mb.askyesno("Datos guardados", "Desea añadir un nuevo club?")
+                if preg:
+                    self.Frame_4.destroy()
+                    self.ventana2()
+                else:
+                    self.VentFondo.destroy()
 
 
-    def anterior(self, arg, arg2, arg3):
-        print(arg, arg2, arg3)
+    def anterior(self, num):
+        
+        num -= 1
+        self.ventana3_render(self.listaDeporteSel, num)
 
 
     def check_deportes(self):
 
         pass
+
