@@ -279,5 +279,3 @@ def guardar_nuevo_empleado(nombre_club, datos):
     except sqlite3.IntegrityError:
         conn.close()
         return False
-
-print("aaaa")
